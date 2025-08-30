@@ -37,8 +37,8 @@ print(f"{lgn}3{lrd}  {gn}Reporter Group [Updating]{lrd}")
 
 number = input(f"{gn}Enter Number : {cn}")
 if number == "1":
-    os.system("python reporter.py")
+    os.system("python report.py")
 elif number == "2":
-    os.system("python report/report.py")
+    os.system("python reporter.py")
 elif number == "3":
     print(f"{yw}This section is being updated and will be added soon\nChannel : @esfelurm{lrd}")
