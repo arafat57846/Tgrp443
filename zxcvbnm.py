@@ -31,8 +31,8 @@ re("Warning ! This is a test reporter, any offense is the responsibility of the 
 print(f"{lrd}")
 
 # রঙের সাথে ক্রমিক লাইন আউটপুট
-print(f"{lgn}1{lrd}  {gn}Reporter Channel{lrd}")
-print(f"{lgn}2{lrd}  {gn}Reporter Account{lrd}")
+print(f"{lgn}1{lrd}  {gn}Report Channel{lrd}")
+print(f"{lgn}2{lrd}  {gn}Report Channel{lrd}")
 print(f"{lgn}3{lrd}  {gn}Reporter Group [Updating]{lrd}")
 
 number = input(f"{gn}Enter Number : {cn}")
